@@ -413,8 +413,7 @@ def SSIdentification(SeqOne, SeqTwo, ReverseOrientation, FixedBack=False ,thresh
 
 # Creating Alignment DF Multithread Function
 def CreatingInputHomologyDF(fastadict,FastaIndexList):
-	AlignedDF = pd.DataFrame()
-
+	records = []
 	for seqindex in FastaIndexList:
 		TempNucleotides = []
 		for faseq in fastadict.values():
@@ -435,10 +434,9 @@ def CreatingInputHomologyDF(fastadict,FastaIndexList):
 				NRepresentation = -100 #Harsh weighting against splits
 			else:
 				NRepresentation = TempNucleotides.count(MostCommonN)/len(TempNucleotides)
-		AlignedDF = AlignedDF.append({'Index_Pos':seqindex,'Nucleotide':MostCommonN,'IdentityScore':NRepresentation},ignore_index=True)
 
-
-	return AlignedDF
+		records.append({'Index_Pos':seqindex,'Nucleotide':MostCommonN,'IdentityScore':NRepresentation})
+	return pd.DataFrame.from_records(records)
 
 
 def IndentifyingAndFilteringOligos(AllParameter,
@@ -452,6 +450,7 @@ def IndentifyingAndFilteringOligos(AllParameter,
 		TargetSiteLengths.append(AllParameter.ProbeLength)
 
 	# Loop through primer or probe
+	oligo_records = []
 	for TSLP in TargetSiteLengths:
 		if TSLP == AllParameter.PrimerLength:
 			OligoType = 'Primer'
@@ -572,16 +571,16 @@ def IndentifyingAndFilteringOligos(AllParameter,
 
 											# If it passed Background Filtering
 											if BlastnPass == True:
-												OligoDF = OligoDF.append(RowDict,ignore_index=True)
+												oligo_records.append(RowDict)
 
 	# Return Primer/Probe DataFrame
-	return OligoDF
+	return pd.DataFrame.from_records(oligo_records)
 
 
 def ComboIdentifyier(PrimerSS,ReversePrimerSS,ProbeSS,AllParameter,PassedOligos,FPrimerL,RPrimerL,ProbeL):
 
-	PassedSetsDataFrame = pd.DataFrame()
 	CombosList = []
+	ps_records = []
 
 	for FP in PrimerSS:
 
@@ -682,9 +681,9 @@ def ComboIdentifyier(PrimerSS,ReversePrimerSS,ProbeSS,AllParameter,PassedOligos,
 
 
 				# Add Passed Row To DataFrame
-				PassedSetsDataFrame = PassedSetsDataFrame.append(PassedComboRow,ignore_index=True)
+				ps_records.append(PassedComboRow)
 
-	return PassedSetsDataFrame
+	return pd.DataFrame.from_records(ps_records)
 
 # Main Function To Generate Primer - Probe Combos
 def CheckingAlignedOutputFile(AllParameter):
