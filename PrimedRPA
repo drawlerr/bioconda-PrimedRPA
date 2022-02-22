@@ -199,7 +199,11 @@ def BlastnBackgroundCheck(seq,AllParameter):
 																			   RIS)
 
 			# Run Samtools Command
-			subprocess.check_call(SamToolsCommand.split(' '),shell=True,stdout=subprocess.STDOUT,stderr=subprocess.STDOUT)
+			try:
+				subprocess.run(SamToolsCommand, shell=True, check=True, capture_output=True)
+			except subprocess.CalledProcessError as cpe:
+				print("stderr:", cpe.stderr.decode())
+				raise
 
 			# Obtain Sequence
 			fastadict = FastaToDict('Adv_{}_{}_{}.fa'.format(seq,CleanRefID,RIS))
